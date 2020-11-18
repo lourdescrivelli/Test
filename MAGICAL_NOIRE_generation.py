@@ -1,5 +1,8 @@
-import generation_functions as gf
-
+def find_delimiter(original_text):
+    delimiter = original_text.split("_ ")[2].split(" _")[1]
+    if delimiter not in ("i","i1","i2","b","b1","b2","b3","b4","b5","b6","c","c1","c2"):
+        print("ERROR")
+    return "_"+delimiter+"_"
 
 #!python Final_run_generation.py   --inputfile_val='../data_generation/data/Model_0/val_wikiplots_full_.txt'  --model_type=gpt2     --model_name_or_path='../language_model/result_model_3' --length 120 --p 0.9 --repetition_penalty 1.4     --outputfile_generated='results/M3_Generation.txt' --full_in='results/M3_Results.txt' --mtype=3
 
