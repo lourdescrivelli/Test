@@ -61,8 +61,7 @@ def get_separator(line):
 def get_model_specific_prompt(line,type_m):
     title = line.split("\t")[0]
     kw = line.split("\t")[1]
-    pv = line.split("\t")[2]
-    p = line.split("\t")[3]
+    p = line.split("\t")[2]
     if type_m==0:
         prompt_text = title
         answer_text = p
@@ -380,15 +379,18 @@ def main():
             generated_sequences.append(total_sequence)
             print("* Our generation",total_sequence)
 
-            #file = open(outputfile_generated, 'a+')
+            file = open(outputfile_generated, 'a+')
             #generated_sequences.append(" _end_ ")
-            file.write(str(generated_sequences).strip('[]'))
+            file.write("answer"+"\t"+answer+"\t"+"generated"+"\t"+only_generation+"\n")
             file2 = open(full_in,'a+')
             new_line = "[PROMPT]"+prompt_text+"\t"
             new_line = new_line+"[ORIGINAL]"+original_text.replace("\n","").strip()+"\t"
             new_line = new_line+"[GENERATED]"+str(generated_sequences).strip('[]')+"_end_"+"\n"
             file2.write(new_line)
             all_generated.append(generated_sequences)
+            i=i+1
+            if i==10:
+              exit()
     return all_generated, real_answers
 
 
