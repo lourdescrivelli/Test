@@ -234,7 +234,7 @@ def train(args, train_dataset, model: PreTrainedModel, tokenizer: PreTrainedToke
         t_total = len(train_dataloader) // args.gradient_accumulation_steps * args.num_train_epochs
 
     model = model.module if hasattr(model, "module") else model  # Take care of distributed/parallel training
-    special_tokens_dict = {'bos_token':'_start_','eos_token':'_end_' ,'additional_special_tokens': ['_g_','_t_', '_i_', '_b_', '_c_','_i1_', '_b1_', '_c1_','_i0_', '_b2_', '_c2_','_b3_','_b4_','_b5_']}
+    special_tokens_dict = {'bos_token':'_start_','eos_token':'_end_' ,'additional_special_tokens': ['_t_', '_i_', '_c_','_b1_', '_b2_','_b3_','_b4_']}
     num_added_toks = tokenizer.add_special_tokens(special_tokens_dict)
     model.resize_token_embeddings(len(tokenizer))
 
@@ -338,6 +338,7 @@ def train(args, train_dataset, model: PreTrainedModel, tokenizer: PreTrainedToke
             model.train()
             outputs = model(inputs, masked_lm_labels=labels) if args.mlm else model(inputs, labels=labels)
             loss = outputs[0]  # model outputs are always tuple in transformers (see doc)
+            logger.info(" Output Loss = %d", loss))
 
             if args.n_gpu > 1:
                 loss = loss.mean()  # mean() to average on multi-gpu parallel training
@@ -372,6 +373,8 @@ def train(args, train_dataset, model: PreTrainedModel, tokenizer: PreTrainedToke
                     tb_writer.add_scalar("lr", scheduler.get_lr()[0], global_step)
                     tb_writer.add_scalar("loss", (tr_loss - logging_loss) / args.logging_steps, global_step)
                     logging_loss = tr_loss
+                    logger.info(" tr_loss  = %d", logging_loss))
+
 
                 if args.local_rank in [-1, 0] and args.save_steps > 0 and global_step % args.save_steps == 0:
                     checkpoint_prefix = "checkpoint"
@@ -453,7 +456,7 @@ def evaluate(args, model: PreTrainedModel, tokenizer: PreTrainedTokenizer, prefi
 
     eval_loss = eval_loss / nb_eval_steps
     perplexity = torch.exp(torch.tensor(eval_loss))
-
+    logger.info("Nb_eval_steps = %d", nb_eval_steps)
     result = {"perplexity": perplexity}
 
     output_eval_file = os.path.join(eval_output_dir, prefix, "eval_results.txt")
