@@ -213,6 +213,7 @@ def mask_tokens(inputs: torch.Tensor, tokenizer: PreTrainedTokenizer, args) -> T
 def train(args, train_dataset, model: PreTrainedModel, tokenizer: PreTrainedTokenizer) -> Tuple[int, float]:
     """ Train the model """
     print_first_batch = 0
+    SAVE_FILE_CODE = '/content/drive/My Drive/Thesis/Final_Experiments/output.txt'
     if args.local_rank in [-1, 0]:
         tb_writer = SummaryWriter()
 
@@ -337,7 +338,7 @@ def train(args, train_dataset, model: PreTrainedModel, tokenizer: PreTrainedToke
             if print_first_batch == 0:
                 print_first_batch=1
                 print("First batch  shape: ", inputs.shape)
-                print("Sample: ", tokenizer.decode(inputs))
+                print("Sample: ", tokenizer.decode(inputs[0]))
             inputs = inputs.to(args.device)
             labels = labels.to(args.device)
             model.train()
@@ -378,7 +379,9 @@ def train(args, train_dataset, model: PreTrainedModel, tokenizer: PreTrainedToke
                     tb_writer.add_scalar("lr", scheduler.get_lr()[0], global_step)
                     tb_writer.add_scalar("loss", (tr_loss - logging_loss) / args.logging_steps, global_step)
                     logging_loss = tr_loss
-                    logger.info(" tr_loss  = %d", logging_loss)
+                    print(" tr_loss ", tr_loss / global_step)
+                    f = open(SAVE_FILE_CODE,'a+')
+                    f.write("epoch : "+str(epoch)+" training loss : "+str(tr_loss / global_step)+"\n")
 
 
                 if args.local_rank in [-1, 0] and args.save_steps > 0 and global_step % args.save_steps == 0:
@@ -415,6 +418,8 @@ def train(args, train_dataset, model: PreTrainedModel, tokenizer: PreTrainedToke
 
 
 def evaluate(args, model: PreTrainedModel, tokenizer: PreTrainedTokenizer, prefix="") -> Dict:
+    SAVE_FILE_CODE = '/content/drive/My Drive/Thesis/Final_Experiments/output.txt'
+
     # Loop to handle MNLI double evaluation (matched, mis-matched)
     eval_output_dir = args.output_dir
 
@@ -460,8 +465,11 @@ def evaluate(args, model: PreTrainedModel, tokenizer: PreTrainedTokenizer, prefi
         nb_eval_steps += 1
 
     eval_loss = eval_loss / nb_eval_steps
+    print("evaluation loss:", eval_loss)
     perplexity = torch.exp(torch.tensor(eval_loss))
     logger.info("Nb_eval_steps = %d", nb_eval_steps)
+    f = open(SAVE_FILE_CODE,'a+')
+    f.write("evaluation loss :" + str(eval_loss)+" perplexity : " + str(perplexity)+"\n")
     result = {"perplexity": perplexity}
 
     output_eval_file = os.path.join(eval_output_dir, prefix, "eval_results.txt")
