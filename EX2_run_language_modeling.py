@@ -212,6 +212,7 @@ def mask_tokens(inputs: torch.Tensor, tokenizer: PreTrainedTokenizer, args) -> T
 
 def train(args, train_dataset, model: PreTrainedModel, tokenizer: PreTrainedTokenizer) -> Tuple[int, float]:
     """ Train the model """
+    print_first_batch = 0
     if args.local_rank in [-1, 0]:
         tb_writer = SummaryWriter()
 
@@ -333,6 +334,10 @@ def train(args, train_dataset, model: PreTrainedModel, tokenizer: PreTrainedToke
                 continue
 
             inputs, labels = mask_tokens(batch, tokenizer, args) if args.mlm else (batch, batch)
+            if print_first_batch == 0:
+                print_first_batch=1
+                print("First batch  shape: ", inputs.shape)
+                print("Sample: ", tokenizer.decode(inputs))
             inputs = inputs.to(args.device)
             labels = labels.to(args.device)
             model.train()
